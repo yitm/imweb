@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="imApp">
+<head>
+    <meta charset="UTF-8">
+    <title><%= maindata.title%></title>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <script src="http://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src="http://apps.bdimg.com/libs/angular.js/1.4.0-beta.4/angular.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <style type="text/css">
+        body{ border: 0px; padding: 0px; margin: 0px; font-family: '微软雅黑';}
+        header{ padding: 20px; border-bottom: 1px solid #dedede;}
+        header .history{ border: 1px solid #dedede; padding: 8px; font-size: 14px; position: fixed; top: 20px; text-align: center; right: 20px; width: 60px; background: rgb(250,250,250); cursor: pointer;}
+        .MsgContent{ border-bottom: 1px solid #dedede; display: none;}
+        .MsgContent h4 span{ font-size: 13px; color: #666; padding-left: 20px; font-weight: 200;}
+        .bottomInput{ position: fixed; bottom: 0px; width: 100%; height: 80px; background: rgba(0,0,0,.6);}
+        .msginput{ width: 95%; max-width: 420px; margin: 0px auto;}
+        .msginput input{ width: 74%; height: 50px; float: left; line-height: 50px; margin-top: 15px; border: 0px; font-family: '微软雅黑'; outline: 0px; padding-left: 2.5%; font-size: 18px;}
+        .msginput .msgbtn{ width: 20%; float: left; height: 50px; line-height: 50px; margin-top: 15px; margin-left: 2.5%; cursor: pointer; background: #3b7feb; color: #fff; text-align: center;}
+        .msgpop{ width: 250px; position: fixed; line-height: 40px; top: -41px; font-size: .8em; text-align: center; background: rgba(255,0,0,0.3); border: 1px solid #e7432f; border-top: 0px; color: #fff; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;}
+        footer{ margin-top: 20px; line-height: 80px; font-size: 12px; padding-left: 20px;}
+        .slcdate{ width: 100%; height: 100%; top: 0px; left: 0px; background: rgba(0,0,0,0.5); position: fixed; z-index: 2; display: none;}
+        .slcdate .ctndate{ width: 80%; margin: 0px auto; background: #fff; max-width: 400px; margin-top: 10%; padding: 0% 5% 5% 5%;}
+        .slcdate .ctndate .ctntitle{ text-align: center; border-bottom: 1px solid #dedede; line-height: 3.0em;}
+        .slcdate .ctndate .ctnselect{ height: 3.0em;}
+        .slcdate .ctndate .ctnselect ul{ padding: 0px;}
+        .slcdate .ctndate .ctnselect ul li{ float: left; width: 25%; list-style: none; margin: 0% 4%;}
+        .slcdate .ctndate .ctnselect ul li select{ width: 100%; height: 3.0em; border: 1px solid #dedede; padding-left: 5%;}
+        .slcdate .ctndate .ctnbtn{ line-height: 2.5em; height: 2.5em; margin-top: 1.0em; cursor: pointer;}
+        .slcdate .ctndate .ctnbtn .left{ float: left; width: 45%; background: #dedede; text-align: center;}
+        .slcdate .ctndate .ctnbtn .right{ float: right; width: 45%; background: #3b7feb; text-align: center; color: #fff;}
+    </style>
+</head>
+<body ng-controller="MsglistController">
+    <header>
+        <h2><%= maindata.title%></h2>
+        <span><%= maindata.desc%></span>
+        <div class="history">历史记录</div>
+    </header>
+    
+    <div class="MsgContent">
+        <ul>
+            <% if (msglist.length) { %>
+                <% msglist.forEach(function(msglist){ %>
+                <li>
+                    <h4><%=: msglist.ip | ipFilters%><span><%=: msglist.date | formatDate%></span></h4>
+                    <p><%= msglist.msg%></p>
+                </li>
+                <% }) %>
+            <% } %>
+            <li ng-repeat="item in list">
+                <h4>{{item.ip | ipFilters}}<span>{{item.date | date:"yyyy-MM-dd hh:mm:ss"}}</span></h4>
+                <p>{{item.msg}}</p>
+            </li>
+        </ul>
+    </div>
+    
+    <div class="bottomInput">
+        <div class="msginput">
+            <input type="text" value="" placeholder="请输入对话">
+            <div class="msgbtn" ng-click="sendMsg()">发送</div>
+        </div>
+    </div>
+    <div class="msgpop"></div>
+    <div class="slcdate">
+        <div class="ctndate">
+            <div class="ctntitle">
+                选择时间
+            </div>
+            <div class="ctnselect">
+                <ul>
+                    <li>
+                        <select>
+                            <option>选择年</option>
+                        </select>
+                    </li>
+                    <li>
+                        <select>
+                            <option>选择月</option>
+                            <option>01</option>
+                            <option>02</option>
+                            <option>03</option>
+                            <option>04</option>
+                            <option>05</option>
+                            <option>06</option>
+                            <option>07</option>
+                            <option>08</option>
+                            <option>09</option>
+                            <option>10</option>
+                            <option>11</option>
+                            <option>12</option>
+                        </select>
+                    </li>
+                    <li>
+                        <select>
+                            <option>选择日</option>
+                            <option>01</option>
+                            <option>02</option>
+                            <option>03</option>
+                            <option>04</option>
+                            <option>05</option>
+                            <option>06</option>
+                            <option>07</option>
+                            <option>08</option>
+                            <option>09</option>
+                            <option>10</option>
+                            <option>11</option>
+                            <option>12</option>
+                            <option>13</option>
+                            <option>14</option>
+                            <option>15</option>
+                            <option>16</option>
+                            <option>17</option>
+                            <option>18</option>
+                            <option>19</option>
+                            <option>20</option>
+                            <option>21</option>
+                            <option>22</option>
+                            <option>23</option>
+                            <option>24</option>
+                            <option>25</option>
+                            <option>26</option>
+                            <option>27</option>
+                            <option>28</option>
+                            <option>29</option>
+                            <option>30</option>
+                            <option>31</option>
+                        </select>
+                    </li>
+                </ul>
+            </div>
+            <div class="ctnbtn">
+                <div class="left">取消</div>
+                <div class="right" ng-click="confirm()">确认</div>
+            </div>
+        </div>
+    </div>
+    <footer>Version <%= maindata.version%></footer>
+    <script>
+        var isSto = true;
+        socket = io.connect(location.href);
+        // 检查与服务器通信
+        socket.on('login',function(data){
+            if(data.errno != 1002){
+                msgpop("(@﹏@)~服务器失联了");
+            }
+        });
+        // 接收消息
+        socket.on('message', function(data){
+            if(data.errno == 1000){
+                var list = [];
+                list.push(data.data);
+                listhtml(list);
+            }
+        });
+        
+        init();
+        
+        // 消息是否回到最底部
+        $(window).scroll(function(){
+            var docheight = $(document).height();
+            var winheight = $(window).height();
+            var topheight = $(document).scrollTop();
+            var isBtm = (docheight - topheight) == winheight ? true : false;
+            if(isBtm) isSto = true;
+        });
+        
+        // 初始化
+        function init(){
+            var winW = document.body.clientWidth;
+            angular.element('.msgpop').css('left', (winW - 250)/2);
+            $('.MsgContent').show();
+            var date = new Date();
+            $('.ctnselect select:eq(0)').find('option:eq(0)').val(date.getFullYear()).text(date.getFullYear());
+            $('.ctnselect select:eq(1)').find('option:eq(0)').val(fmtNum(date.getMonth()+1)).text(fmtNum(date.getMonth()+1));
+            $('.ctnselect select:eq(2)').find('option:eq(0)').val(fmtNum(date.getDate())).text(fmtNum(date.getDate()));
+            
+            $('.MsgContent').on('touchstart',function(){
+                isSto = false;
+            });
+            
+            $('.MsgContent').on('mouseover',function(){
+                isSto = false;
+            });
+            
+            $('.bottomInput').on('click',function(){
+                isSto = true;
+            });
+            
+            $('.bottomInput').on('touchstart',function(){
+                isSto = true;
+            });
+            
+            // 监听Enter按键事件
+            $(document).on('keydown', function(e){
+                // IE
+                if(window.event){
+                    keynum = e.keyCode
+                }
+                // Netscape/Firefox/Opera
+                else if(e.which){
+                    keynum = e.which
+                }
+                if(keynum == 13){
+                    $('.msgbtn').click();
+                }
+                
+            });
+            
+            $('.history').on('click', function(){
+                $('.slcdate').fadeIn();
+            });
+            $('.slcdate').find('.left').on('click', function(){
+                $('.slcdate').fadeOut();
+            });
+            
+        }
+        
+        // 消息框
+        function msgpop(msg){
+            $('.msgpop').html(msg).stop().animate({top: 0}, 500, function(){
+                $(this).delay(2000).animate({top: '-41px'}, 500);
+            });
+        }
+        
+        var imAppModule = angular.module('imApp', []);
+        imAppModule.controller('MsglistController', function($scope, $http){
+            
+            function getData(){
+                // 请求数据
+                $http.get('/get').success(function(data){
+                    if(data.errno == 1000){
+                        var list = data.data;
+                        listhtml(list);
+                    }
+                }).error(function(){
+                    msgpop("(@﹏@)~服务器失联了");
+                });
+            }
+            
+            // setInterval(getData, 3000);   // 使用ajax轮询方式
+            
+            $scope.sendMsg = function(){
+                                
+                var $msginput = angular.element('.msginput input');
+                var msg = $msginput.val();
+                if(msg == "" || msg == undefined){
+                    msgpop("消息不能为空");
+                    $msginput.focus();
+                    return false;
+                };
+                
+                $msginput.val('');
+                
+                socket.emit('message', {msg: msg});
+                // 提交请求  使用ajax轮询方式
+                /*$http.post('/post', {msg: msg}).success(function(data){
+                    if(data.errno == 1000){
+                        getData();
+                    }
+                    else{
+                        msgpop("消息发送失败");
+                    }
+                });*/
+                                
+            }
+            
+            // 操作历史数据
+            $scope.confirm = function(){
+                var y = $('.ctnselect select:eq(0)').val();
+                var m = $('.ctnselect select:eq(1)').val();
+                var d = $('.ctnselect select:eq(2)').val();
+                $http.get('/history/'+y+m+d).success(function(data){
+                    if(data.errno == 1000){
+                        $scope.list = data.data.MsgList;
+                    }
+                    else{
+                        msgpop("未有历史数据");
+                    }
+                    $('.slcdate').fadeOut();
+                });
+            }
+        });
+        
+        // 自定义ip过滤器
+        imAppModule.filter("ipFilters",function(){
+            return function(value){
+                return ipFilters(value);
+            };
+        });
+        
+        // 显示聊天信息
+        function listhtml(list){
+            for(var x in list){
+                var listIP = ipFilters(list[x].ip);
+                var listDate = dateFilters(list[x].date);
+
+                var htmlLI = '<li><h4>'+listIP+'<span>'+listDate+'</span></h4><p>'+list[x].msg+'</p></li>';
+                $('.MsgContent ul').append(htmlLI);
+
+            }
+            var docheight = $(document).height();
+            var winheight = $(window).height();
+            var sto = docheight - winheight;
+            if(sto>0 && isSto){
+                scrollTo(0,sto);
+            }
+        }
+        
+        
+        // IP过滤器
+        function ipFilters(value){
+            if(value == '' || value == undefined){
+                return value;
+            }
+            var ipVal = value.split(',')[0];
+            var _ip = ipVal.split(".");
+            _ip[3] = "*";
+            _ip = _ip.join(".");
+            return _ip;
+        }
+        
+        // 日期过滤器
+        function dateFilters(value){
+            var date = new Date(value);
+            var y = date.getFullYear();
+            var m = fmtNum(date.getMonth()+1);
+            var d = fmtNum(date.getDate());
+            var h = fmtNum(date.getHours());
+            var i = fmtNum(date.getMinutes());
+            var s = fmtNum(date.getSeconds());
+
+            return y+"-"+m+"-"+d+" "+h+":"+i+":"+s;
+            
+        }
+        
+        function fmtNum(n){
+            if(Number(n) < 10) return '0'+n;
+            return n;
+        }
+        
+    </script>
+</body>
+</html>
